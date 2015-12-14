@@ -2,6 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="edu.delta.aspin.rpptglass.MainActivity">
 
+    <!--TODO: Figure out why font sizes are wrong here...-->
+
     <item
         android:id="@+id/scan"
         android:title="@string/menu_scan"

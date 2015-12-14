@@ -51,12 +51,7 @@ public class StreamActivity extends Activity implements Session.SessionListener,
             mSession.setSessionListener(this);
             mSession.connect(TOKEN);
         }
-
-        // TODO: Handle stream deletion
-        // TODO: Add pausing stream
-        // TODO: Handle closing Glass app
     }
-
 
     @Override
     protected void onPause() {
@@ -101,8 +96,10 @@ public class StreamActivity extends Activity implements Session.SessionListener,
     public boolean onPrepareOptionsMenu (Menu menu) {
         if (mSessionIsConnected) {
             menu.getItem(0).setEnabled(false);
+            menu.getItem(1).setEnabled(true);
         } else {
             menu.getItem(1).setEnabled(false);
+            menu.getItem(0).setEnabled(true);
         }
         return true;
     }
@@ -111,6 +108,7 @@ public class StreamActivity extends Activity implements Session.SessionListener,
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.resume:
+                // TODO: verify if this is allowed on web / OpenTok sides
                 mSession.connect(TOKEN);
                 return true;
             case R.id.stop:
