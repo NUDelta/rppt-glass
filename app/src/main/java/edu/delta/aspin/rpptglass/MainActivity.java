@@ -39,15 +39,12 @@ public class MainActivity extends Activity implements MeteorCallback {
     }
 
     private void setupMeteorClient() {
-        // TODO: setup connection on application launch + close behavior
-        // see http://stackoverflow.com/questions/1396133/android-how-to-do-something-on-app-launch
         if (!MeteorSingleton.hasInstance()) {
             MeteorSingleton.createInstance(this, METEOR_URL);
             MeteorSingleton.getInstance().setCallback(this);
         } else {
             MeteorSingleton.getInstance().reconnect();
         }
-
     }
 
     private void setupGestureDetector() {
@@ -78,6 +75,7 @@ public class MainActivity extends Activity implements MeteorCallback {
     }
     //endregion
 
+    //region Menu Management
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -106,6 +104,7 @@ public class MainActivity extends Activity implements MeteorCallback {
             MeteorSingleton.getInstance().disconnect();
         }
     }
+    //endregion
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -114,37 +113,12 @@ public class MainActivity extends Activity implements MeteorCallback {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        final MainActivity self = this;
         if (requestCode == QR_CODE_MODE) {
             String syncCode = data.getStringExtra("SCAN_RESULT");
             Log.v(TAG, String.format("Scan result: %s", syncCode));
-            MeteorSingleton.getInstance().call(
-                    "getStreamData",
-                    new Object[]{syncCode, "publisher"},
-                    new ResultListener() {
-                        @Override
-                        public void onSuccess(String result) {
-                            Log.v(TAG, String.format("Got result: %S", result));
-                            Type type = new TypeToken<Map<String, String>>(){}.getType();
-                            Gson gson = new Gson();
-                            Map<String, String> credentials = gson.fromJson(result, type);
-
-                            Intent intent = new Intent(self, StreamActivity.class);
-                            intent.putExtra("key", credentials.get("key"));
-                            intent.putExtra("session", credentials.get("session"));
-                            intent.putExtra("token", credentials.get("token"));
-                            startActivity(intent);
-                        }
-
-                        @Override
-                        public void onError(String error, String reason, String details) {
-                            // TODO: Handle this, usually results from no matching key
-                            Log.w(TAG, String.format("Error: %s", error));
-                            Log.w(TAG, String.format("Reason: %s", reason));
-                            Log.w(TAG, String.format("Details: %s", details));
-                        }
-                    }
-            );
+            Intent intent = new Intent(this, StreamActivity.class);
+            intent.putExtra("syncCode", syncCode);
+            startActivity(intent);
         }
     }
 

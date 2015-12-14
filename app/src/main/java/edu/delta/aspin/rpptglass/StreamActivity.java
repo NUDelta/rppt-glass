@@ -3,6 +3,7 @@ package edu.delta.aspin.rpptglass;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Activity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -11,6 +12,8 @@ import android.widget.RelativeLayout;
 
 import com.google.android.glass.touchpad.Gesture;
 import com.google.android.glass.touchpad.GestureDetector;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.OpentokError;
 import com.opentok.android.Publisher;
@@ -20,11 +23,17 @@ import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
 import com.opentok.android.SubscriberKit;
 
+import java.lang.reflect.Type;
+import java.util.Map;
+
+import im.delight.android.ddp.MeteorSingleton;
+import im.delight.android.ddp.ResultListener;
+
 public class StreamActivity extends Activity implements Session.SessionListener, Publisher.PublisherListener, Subscriber.SubscriberListener {
 
-    private String KEY = "";
-    private String SESSION = "";
-    private String TOKEN = "";
+    private static final String TAG = "RPPT StreamActivity";
+
+    private String SYNC_CODE = "";
 
     private Session mSession;
     private Publisher mPublisher;
@@ -41,17 +50,46 @@ public class StreamActivity extends Activity implements Session.SessionListener,
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         Intent intent = getIntent();
-        KEY = intent.getStringExtra("key");
-        SESSION = intent.getStringExtra("session");
-        TOKEN = intent.getStringExtra("token");
+        SYNC_CODE = intent.getStringExtra("syncCode");
+        connectAndStartStream();
+    }
 
+    private void connectAndStartStream() {
+        Log.v(TAG, String.format("Searching for stream %s", SYNC_CODE));
+        MeteorSingleton.getInstance().call(
+                "getStreamData",
+                new Object[]{ SYNC_CODE, "publisher" },
+                new ResultListener() {
+                    @Override
+                    public void onSuccess(String result) {
+                        Log.v(TAG, String.format("Got result: %S", result));
+                        Type type = new TypeToken<Map<String, String>>() {
+                        }.getType();
+                        Gson gson = new Gson();
+                        Map<String, String> credentials = gson.fromJson(result, type);
+                        startStream(credentials);
+                    }
+
+                    @Override
+                    public void onError(String error, String reason, String details) {
+                        // TODO: Handle this, usually results from no matching key
+                        Log.w(TAG, String.format("Error: %s", error));
+                        Log.w(TAG, String.format("Reason: %s", reason));
+                        Log.w(TAG, String.format("Details: %s", details));
+                    }
+                }
+        );
+    }
+
+    private void startStream(Map<String, String> credentials) {
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisher_view);
         if (mSession == null) {
-            mSession = new Session(this, KEY, SESSION);
+            mSession = new Session(this, credentials.get("key"), credentials.get("session"));
             mSession.setSessionListener(this);
-            mSession.connect(TOKEN);
         }
+        mSession.connect(credentials.get("token"));
     }
+
 
     @Override
     protected void onPause() {
@@ -108,8 +146,7 @@ public class StreamActivity extends Activity implements Session.SessionListener,
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.resume:
-                // TODO: verify if this is allowed on web / OpenTok sides
-                mSession.connect(TOKEN);
+                connectAndStartStream();
                 return true;
             case R.id.stop:
                 mSession.disconnect();
