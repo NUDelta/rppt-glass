@@ -42,6 +42,7 @@ public class StreamActivity extends Activity implements Session.SessionListener,
 
     private GestureDetector mGestureDetector;
 
+    //region Activity Creation Lifecycle
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,13 +91,6 @@ public class StreamActivity extends Activity implements Session.SessionListener,
         mSession.connect(credentials.get("token"));
     }
 
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mSession.disconnect();
-    }
-
     private void setupGestureDetector() {
         mGestureDetector = new GestureDetector(this);
         mGestureDetector.setBaseListener(new GestureDetector.BaseListener() {
@@ -123,7 +117,20 @@ public class StreamActivity extends Activity implements Session.SessionListener,
             }
         });
     }
+    //endregion
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSession.disconnect();
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        return mGestureDetector != null && mGestureDetector.onMotionEvent(event);
+    }
+
+    //region Menu Management
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.stream, menu);
@@ -159,11 +166,7 @@ public class StreamActivity extends Activity implements Session.SessionListener,
                 return super.onOptionsItemSelected(item);
         }
     }
-
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
-        return mGestureDetector != null && mGestureDetector.onMotionEvent(event);
-    }
+    //endregion
 
     //region OpenTok Interface Methods
     @Override
