@@ -4,14 +4,10 @@
 
     <item
         android:id="@+id/scan"
-        android:title="@string/menu_scan" />
+        android:title="@string/menu_scan"
+        android:icon="@drawable/ic_sync"/>
     <item
         android:id="@+id/quit"
-        android:title="@string/menu_quit" />
-
-    <!--<item-->
-        <!--android:id="@+id/scan"-->
-        <!--android:title="@string/scan"-->
-        <!--android:icon="@drawable/ic_start" />-->
-
+        android:title="@string/menu_quit"
+        android:icon="@drawable/ic_quit"/>
 </menu>

@@ -28,6 +28,7 @@ public class MainActivity extends Activity implements MeteorCallback {
 
     private GestureDetector mGestureDetector;
 
+    //region Activity Creation Lifecyle
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,31 +38,16 @@ public class MainActivity extends Activity implements MeteorCallback {
         setupMeteorClient();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.scan:
-                Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-                intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-                startActivityForResult(intent, QR_CODE_MODE);
-                return true;
-            case R.id.quit:
-                finish();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+    private void setupMeteorClient() {
+        // TODO: setup connection on application launch + close behavior
+        // see http://stackoverflow.com/questions/1396133/android-how-to-do-something-on-app-launch
+        if (!MeteorSingleton.hasInstance()) {
+            MeteorSingleton.createInstance(this, METEOR_URL);
+            MeteorSingleton.getInstance().setCallback(this);
+        } else {
+            MeteorSingleton.getInstance().reconnect();
         }
-    }
 
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
-        return mGestureDetector != null && mGestureDetector.onMotionEvent(event);
     }
 
     private void setupGestureDetector() {
@@ -90,22 +76,40 @@ public class MainActivity extends Activity implements MeteorCallback {
             }
         });
     }
+    //endregion
 
-    private void setupMeteorClient() {
-        // TODO: setup connection on application launch + close behavior
-        // see http://stackoverflow.com/questions/1396133/android-how-to-do-something-on-app-launch
-//        if (MeteorSingleton.getInstance() == null) {
-//            MeteorSingleton.createInstance(this, METEOR_URL);
-//        } else {
-//            MeteorSingleton.getInstance().reconnect();
-//        }
-        if (!MeteorSingleton.hasInstance()) {
-            MeteorSingleton.createInstance(this, METEOR_URL);
-            MeteorSingleton.getInstance().setCallback(this);
-        } else {
-            MeteorSingleton.getInstance().reconnect();
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.scan:
+                Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+                startActivityForResult(intent, QR_CODE_MODE);
+                return true;
+            case R.id.quit:
+                cleanUp();
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
+    }
 
+    private void cleanUp() {
+        if (MeteorSingleton.hasInstance()) {
+            MeteorSingleton.getInstance().disconnect();
+        }
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        return mGestureDetector != null && mGestureDetector.onMotionEvent(event);
     }
 
     @Override
@@ -144,6 +148,7 @@ public class MainActivity extends Activity implements MeteorCallback {
         }
     }
 
+    //region MeteorCallback Interface Methods
     @Override
     public void onConnect(boolean signedInAutomatically) {
         Log.v(TAG, String.format("Connected to Meteor server at: %s", METEOR_URL));
@@ -173,4 +178,5 @@ public class MainActivity extends Activity implements MeteorCallback {
     public void onException(Exception e) {
         Log.e(TAG, "Exception thrown: ", e);
     }
+    //endregion
 }

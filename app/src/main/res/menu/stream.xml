@@ -3,11 +3,14 @@
     tools:context="edu.delta.aspin.rpptglass.StreamActivity">
     <item
         android:id="@+id/resume"
-        android:title="@string/menu_resume" />
+        android:title="@string/menu_resume"
+        android:icon="@drawable/ic_resume"/>
     <item
         android:id="@+id/stop"
-        android:title="@string/menu_stop" />
+        android:title="@string/menu_stop"
+        android:icon="@drawable/ic_pause"/>
     <item
         android:id="@+id/quit"
-        android:title="@string/menu_quit" />
+        android:title="@string/menu_quit"
+        android:icon="@drawable/ic_quit"/>
 </menu>

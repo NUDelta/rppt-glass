@@ -29,6 +29,7 @@ public class StreamActivity extends Activity implements Session.SessionListener,
     private Session mSession;
     private Publisher mPublisher;
     private RelativeLayout mPublisherViewContainer;
+    private Boolean mSessionIsConnected = false;
 
     private GestureDetector mGestureDetector;
 
@@ -56,9 +57,10 @@ public class StreamActivity extends Activity implements Session.SessionListener,
         // TODO: Handle closing Glass app
     }
 
+
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
+        super.onPause();
         mSession.disconnect();
     }
 
@@ -97,8 +99,11 @@ public class StreamActivity extends Activity implements Session.SessionListener,
 
     @Override
     public boolean onPrepareOptionsMenu (Menu menu) {
-//        if (mSession.)
-//            menu.getItem(1).setEnabled(false);
+        if (mSessionIsConnected) {
+            menu.getItem(0).setEnabled(false);
+        } else {
+            menu.getItem(1).setEnabled(false);
+        }
         return true;
     }
 
@@ -125,23 +130,19 @@ public class StreamActivity extends Activity implements Session.SessionListener,
         return mGestureDetector != null && mGestureDetector.onMotionEvent(event);
     }
 
+    //region OpenTok Interface Methods
     @Override
-    public void onStreamCreated(PublisherKit publisherKit, Stream stream) {
-
-    }
-
-    @Override
-    public void onStreamDestroyed(PublisherKit publisherKit, Stream stream) {
-
-    }
+    public void onStreamCreated(PublisherKit publisherKit, Stream stream) { }
 
     @Override
-    public void onError(PublisherKit publisherKit, OpentokError opentokError) {
+    public void onStreamDestroyed(PublisherKit publisherKit, Stream stream) { }
 
-    }
+    @Override
+    public void onError(PublisherKit publisherKit, OpentokError opentokError) { }
 
     @Override
     public void onConnected(Session session) {
+        mSessionIsConnected = true;
         if (mPublisher == null) {
             mPublisher = new Publisher(this, "publisher");
             mPublisher.setPublisherListener(this);
@@ -157,40 +158,29 @@ public class StreamActivity extends Activity implements Session.SessionListener,
 
     @Override
     public void onDisconnected(Session session) {
+        mSessionIsConnected = false;
         if (mPublisher != null) {
             mPublisherViewContainer.removeView(mPublisher.getView());
         }
-
         mPublisher = null;
     }
 
     @Override
-    public void onStreamReceived(Session session, Stream stream) {
-
-    }
+    public void onStreamReceived(Session session, Stream stream) { }
 
     @Override
-    public void onStreamDropped(Session session, Stream stream) {
-
-    }
+    public void onStreamDropped(Session session, Stream stream) { }
 
     @Override
-    public void onError(Session session, OpentokError opentokError) {
-
-    }
+    public void onError(Session session, OpentokError opentokError) { }
 
     @Override
-    public void onConnected(SubscriberKit subscriberKit) {
-
-    }
+    public void onConnected(SubscriberKit subscriberKit) { }
 
     @Override
-    public void onDisconnected(SubscriberKit subscriberKit) {
-
-    }
+    public void onDisconnected(SubscriberKit subscriberKit) { }
 
     @Override
-    public void onError(SubscriberKit subscriberKit, OpentokError opentokError) {
-
-    }
+    public void onError(SubscriberKit subscriberKit, OpentokError opentokError) { }
+    //endregion
 }
