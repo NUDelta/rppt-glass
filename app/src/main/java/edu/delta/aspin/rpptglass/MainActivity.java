@@ -23,7 +23,7 @@ import im.delight.android.ddp.ResultListener;
 public class MainActivity extends Activity implements MeteorCallback {
 
     private static final String TAG = "RPPT MainActivity";
-    private static final String METEOR_URL = "ws://rppt.meteor.com/websocket";
+    private static final String METEOR_URL = "ws://rppt.meteorapp.com/websocket";
     private static final Integer QR_CODE_MODE = 0;
 
     private GestureDetector mGestureDetector;
